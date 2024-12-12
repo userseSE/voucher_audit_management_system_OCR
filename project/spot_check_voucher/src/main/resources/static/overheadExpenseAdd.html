@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        凭证抽查信息管理
+    </title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="css/main.css" media="all">
+    <script type="text/javascript" src="lib/loading/okLoading.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <!-- 引入ElementUI样式 -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+<div id="app">
+    <div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>{{title}}</cite></a>
+            </span>
+        <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+    </div>
+    <div class="x-body">
+        <el-form :model="checkVouInfo" :rules="rules" ref="voucheckFormRef" label-width="120px" class="demo-ruleForm">
+            <el-form-item label="抽凭程序" prop="audPro">
+                <el-input v-model="checkVouInfo.audPro" :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="抽凭索引号" prop="audId">
+                <el-input v-model="checkVouInfo.audId" :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="抽凭负责人" prop="internName">
+                <el-input v-model="checkVouInfo.internName"></el-input>
+            </el-form-item>
+            <el-form-item label="负责人工号" prop="internId">
+                <el-input v-model="checkVouInfo.internId"></el-input>
+            </el-form-item>
+            <el-form-item label="企业名称" prop="comp">
+                <el-input v-model="checkVouInfo.comp" :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="凭证编号" prop="vouId">
+                <el-input v-model="checkVouInfo.vouId" :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="记账日期" prop="vouDate">
+                <el-input v-model="checkVouInfo.vouDate" :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="上传飞机行程单图片" prop="thumbnail">
+                <el-upload
+                        class="upload-demo"
+                        drag
+                        multiple
+                        action="/voucheck/fileupload"
+                        :on-preview="handlePreview"
+                        :on-remove="handleRemove"
+                        :on-success="handleSuccess"
+                        :file-list="fileList"
+                        list-type="picture">
+                    <i class="el-icon-upload"></i>
+                    <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                    <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+                </el-upload>
+            </el-form-item>
+            </el-form-item>
+            <el-form-item label="记账科目" prop="vouAcc">
+                <el-input v-model="checkVouInfo.vouAcc" :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="对方科目" prop="conAcc">
+                <el-input v-model="checkVouInfo.conAcc" :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="凭证金额" prop="amount">
+                <el-input v-model="checkVouInfo.amount" :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="凭证附件" prop="attach">
+                <el-input type="textarea" v-model="checkVouInfo.attach"></el-input>
+            </el-form-item>
+            <el-form-item label="手续是否齐全" prop="procedu">
+                <el-radio v-model="checkVouInfo.procedu" label="是">是</el-radio>
+                <el-radio v-model="checkVouInfo.procedu" label="否">否</el-radio>
+            </el-form-item>
+            <el-form-item label="核对内容是否相符" prop="verify">
+                <el-radio v-model="checkVouInfo.verify" label="是">是</el-radio>
+                <el-radio v-model="checkVouInfo.verify" label="否">否</el-radio>
+            </el-form-item>
+            <el-form-item label="飞机行程单始发站" prop="planeStartStation">
+                <el-input v-model="checkVouInfo.planeStartStation"></el-input>
+            </el-form-item>
+            <el-form-item label="飞机行程单目的站" prop="planeDestinationStation">
+                <el-input v-model="checkVouInfo.planeDestinationStation"></el-input>
+            </el-form-item>
+            <el-form-item label="飞机行程单日期" prop="planeDate">
+                <el-input v-model="checkVouInfo.planeDate"></el-input>
+            </el-form-item>
+            <el-form-item label="飞机行程单总计金额" prop="planeTicketRate">
+                <el-input v-model="checkVouInfo.planeTicketRate"></el-input>
+            </el-form-item>
+            <el-form-item label="飞机行程单承运人" prop="planeCarrier">
+                <el-input v-model="checkVouInfo.planeCarrier"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="save()" style="text-align: center">保存</el-button>
+                <el-button @click="clearAll()" style="text-align: center">重置</el-button>
+            </el-form-item>
+        </el-form>
+    </div>
+</div>
+<script src="lib/layui/layui.js" charset="utf-8"></script>
+<script src="js/x-layui.js" charset="utf-8"></script>
+<!--导入Vue依赖包-->
+<script src="js/vue.js" charset="utf-8"></script>
+<!-- 引入Element组件库 -->
+<script src="js/index.js"></script>
+<!--导入Axios依赖包-->
+<script src="js/axios.js" charset="utf-8"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el:"#app",
+        data:{
+            title:"添加凭证审核信息",
+            orgAttribute:"",
+            checkVouInfo:{"thumbnail":"","audId":"","comp":"","vouDate":"","internId": "","vouId":"","sealType":"","sealMajorWords":"","sealMinorWords":""},
+            checkVouInfo2:{},
+            fileList:[],
+            checkListData:[],//多选框里要显示的数据
+            checkListDataStr:"",
+            checkList:[
+                {propCode:"普通发票",propName:'普通发票'},
+                {propCode:"专业发票",propName:'专业发票'},
+                {propCode:"增值税专用发票",propName:'增值税专用发票'},
+            ],
+            pickerOptions: {
+                disabledDate(time) {
+                    return time.getTime() > Date.now();
+                },
+                shortcuts: [{
+                    text: '今天',
+                    onClick(picker) {
+                        picker.$emit('pick', new Date());
+                    }
+                }, {
+                    text: '昨天',
+                    onClick(picker) {
+                        const date = new Date();
+                        date.setTime(date.getTime() - 3600 * 1000 * 24);
+                        picker.$emit('pick', date);
+                    }
+                }, {
+                    text: '一周前',
+                    onClick(picker) {
+                        const date = new Date();
+                        date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
+                        picker.$emit('pick', date);
+                    }
+                }]
+            },
+            rules: {
+                internId: [
+                    { required: false, message: '请输入抽凭负责人工号', trigger: 'blur' },
+                    { min: 0, max: 10, message: '长度在 0 到 10 个字符', trigger: 'blur' }
+                ],
+                internName: [
+                    { required: false, message: '请输入抽凭负责人姓名', trigger: 'blur' },
+                    { min: 0, max: 5, message: '长度在 0 到 5 个字符', trigger: 'blur' }
+                ],
+                attach: [
+                    { required: false, message: '请填写凭证附件内容', trigger: 'blur' }
+                ],
+                procedu:[
+                    { required: false, message: '核对手续是否齐全', trigger: 'change' },
+                    { min: 0, max:1, message: '请填入“是”或“否”', trigger: 'blur' }
+                ],
+                verify:[
+                    { required: false, message: '核对内容是否相符', trigger: 'change' },
+                    { min: 0, max:1, message: '请填入“是”或“否”', trigger: 'blur' }
+                ],
+                needPdf:[
+                    { required: false, trigger: 'change' },
+                    { min: 0, max:1, message: '请填入“是”或“否”', trigger: 'blur' }
+                ],
+                thumbnail:[
+                    { required: false, message: '请上传附件文件', trigger: 'change' }
+                ]
+            }
+        },
+        methods:{
+            findById(){
+                axios.get("/spotCheckVoucher/findById?comp="+this.checkVouInfo.comp+"&audId="+this.checkVouInfo.audId).then((res)=>{
+                    this.checkVouInfo = res.data.data;
+                    this.checkVouInfo2=res.data.data; //识别是否为已经存在的数据，判断为修改还是新增数据
+                    this.fileList.push({url:"http://localhost/voucheck"+this.checkVouInfo.thumbnail});
+                });
+            },
+            handleSuccess(response, file, fileList){
+                this.checkVouInfo.thumbnail=response.data;
+            },
+            handleRemove() {
+                axios.get("/voucheck/delFile?fileName="+this.checkVouInfo.thumbnail).then((res)=>{
+                    app.checkVouInfo.thumbnail="";
+                    if(res.data.flag){
+                        app.fileList=[];
+                        this.$message({
+                            message: '文件删除成功',
+                            type: 'success'
+                        });
+                    }
+                });
+            },
+            handlePreview(file) {
+                console.log(file);
+            },
+            handleExceed(files, fileList) {
+                this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+            },
+            //文件删除提示
+            beforeRemove(file, fileList) {
+                return this.$confirm(`确定移除 ${ file.name }？`);
+            },
+            //表达重置
+            clearAll() {
+                this.$refs.voucheckFormRef.resetFields();
+                if(this.fileList.length>0) {
+                    this.handleRemove();
+                }
+            },
+            save(){
+                var method = "";
+                if(this.checkVouInfo2.audId != null && this.checkVouInfo2.comp!=null){
+                    method = "update"
+                    //有主键说明是修改不是新增
+                }else{
+                    method = "add"
+                }
+                axios.post("/spotCheckVoucher/"+method,this.checkVouInfo).then((res)=>{
+                    if(res.data.flag){
+                        this.$message({
+                            message: res.data.message,
+                            type: 'success'
+                        });
+                    }
+                });
+            },
+            imgUrl(){
+                return "http://localhost/voucheck"+app.checkVouInfo.thumbnail;
+            },
+            //获取页面的指定String
+            getQueryString(name){
+                let reg = `(^|&)${name}=([^&]*)(&|$)`;
+                let r = window.location.search.substr(1).match(reg);
+                if (r != null)
+                    return unescape(r[2]);
+                return null;
+            },
+            getQueryStringC(name){
+                let reg = `(^|&)${name}=([^&]*)(&|$)`;
+                let r = window.location.search.substr(1).match(reg);
+                if (r != null)
+                    return decodeURIComponent(r[2]);
+                return null;
+            },
+            //选中值变化时的方法
+            orgAttributeChange(item,val) {
+                if (val) {
+                    // 增加值
+                    let list = this.checkList.filter((i,v)=> {
+                        return i.propCode == item.propCode;
+                    })
+                    this.checkListDataStr += ","+ list[0].propCode;//最后选中的数据
+
+                    let flag = this.checkListDataStr.startsWith(',');
+                    //有，要去掉字符串前面的,没有则不需要
+
+                    if (flag) {
+                        this.checkVouInfo.invTyp = this.checkListDataStr.substring(1);
+                    }else {
+                        this.checkVouInfo.invTyp = this.checkListDataStr;
+                    }
+                    this.checkListData = this.checkVouInfo.invTyp.split(',');
+
+                }else {
+                    //不勾选当前选中的值
+                    let arr = this.checkListData;
+                    arr.remove=function(n) {
+                        return n == item.propCode;
+                    };
+                    this.checkListData = arr;
+                    // 选择后的数据转化为字符串
+                    let str = arr.join(',');
+                    this.checkVouInfo.invTyp = str;//要传递给后台的数据
+                    this.checkListDataStr = str;
+                }
+            },
+        },
+        created:function(){
+            //获取父页面传递参数，凭证信息ID
+            this.checkVouInfo.audId = this.getQueryString("audId");
+            this.checkVouInfo.comp = this.getQueryStringC("comp");
+            //根据audId\comp获取凭证信息对象，进行数据回显
+            if((this.checkVouInfo.audId != null && this.checkVouInfo.audId != '')&&
+                (this.checkVouInfo.comp != null && this.checkVouInfo.comp != '')){
+                this.title="修改凭证审核信息";
+                this.findById();
+            }
+            layui.use(['element','layer','form'], function(){
+                $ = layui.jquery;//jquery
+                lement = layui.element();//面包导航
+                layer = layui.layer;//弹出层
+                form = layui.form();
+                okLoading.close($);
+            })
+        }
+    });
+</script>
+</body>
+</html>

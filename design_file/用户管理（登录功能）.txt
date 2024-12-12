@@ -1,0 +1,11 @@
+用户管理
+实现：
+从login.html进入
+intern和Auditor分别做一个登入接口，前端在一个页面（login.html）里接入这两个接口
+manager的页面中可以实现添加用户的操作，也就是注册功能，默认一个密码
+intern和Auditor用户自己也要可以修改密码
+要有退出登录的功能
+
+intern:
+1、Dao层：加入一个方法，getByIdAndPassword(String internId, String iKey)
+2、

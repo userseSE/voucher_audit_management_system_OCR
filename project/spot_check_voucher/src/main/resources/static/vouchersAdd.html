@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        凭证信息管理
+    </title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="css/main.css" media="all">
+    <script type="text/javascript" src="lib/loading/okLoading.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <!-- 引入ElementUI样式 -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+<div id="app">
+    <div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>{{title}}</cite></a>
+            </span>
+        <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+    </div>
+    <div class="x-body">
+        <el-form :model="vouchers" :rules="rules" ref="voucheckFormRef" label-width="120px" class="demo-ruleForm">
+            <el-form-item label="企业名称" prop="comp">
+                <el-input v-model="vouchers.comp"></el-input>
+            </el-form-item>
+            <el-form-item label="凭证编号" prop="vouId">
+                <el-input v-model="vouchers.vouId"></el-input>
+            </el-form-item>
+            <el-form-item label="记账日期" prop="vouDate">
+                <el-date-picker
+                        type="date"
+                        v-model="vouchers.vouDate"
+                        placeholder="选择日期"
+                        value-format="yyyy-MM-dd"
+                        :picker-options="pickerOptions">
+                </el-date-picker>
+            </el-form-item>
+            <el-form-item label="记账科目" prop="vouAcc">
+                <el-input v-model="vouchers.vouAcc"></el-input>
+            </el-form-item>
+            <el-form-item label="对方科目" prop="conAcc">
+                <el-input v-model="vouchers.conAcc"></el-input>
+            </el-form-item>
+            <el-form-item label="凭证金额" prop="amount">
+                <el-input v-model="vouchers.amount"></el-input>
+            </el-form-item>
+            <el-form-item label="是否需要抽查" prop="needVouch">
+                <el-radio v-model="vouchers.needVouch" label="是">是</el-radio>
+                <el-radio v-model="vouchers.needVouch" label="否">否</el-radio>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="save()" style="text-align: center">保存</el-button>
+                <el-button @click="clearAll()" style="text-align: center">重置</el-button>
+            </el-form-item>
+        </el-form>
+        <!--TODO 添加记录完成后，自动跳回List页面-->
+    </div>
+</div>
+<script src="lib/layui/layui.js" charset="utf-8"></script>
+<script src="js/x-layui.js" charset="utf-8"></script>
+<!--导入Vue依赖包-->
+<script src="js/vue.js" charset="utf-8"></script>
+<!-- 引入Element组件库 -->
+<script src="js/index.js"></script>
+<!--导入Axios依赖包-->
+<script src="js/axios.js" charset="utf-8"></script>
+<script type="text/javascript">
+    var app = new Vue({
+        el:"#app",
+        data:{
+            title:"添加凭证审核信息",
+            orgAttribute:"",
+            vouchers:{"vouId":"","comp":"","vouDate":"","vouAcc":"","conAcc":""},
+            vouchers2:{},
+            pickerOptions: {
+                disabledDate(time) {
+                    return time.getTime() > Date.now();
+                },
+                shortcuts: [{
+                    text: '今天',
+                    onClick(picker) {
+                        picker.$emit('pick', new Date());
+                    }
+                }, {
+                    text: '昨天',
+                    onClick(picker) {
+                        const date = new Date();
+                        date.setTime(date.getTime() - 3600 * 1000 * 24);
+                        picker.$emit('pick', date);
+                    }
+                }, {
+                    text: '一周前',
+                    onClick(picker) {
+                        const date = new Date();
+                        date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
+                        picker.$emit('pick', date);
+                    }
+                }]
+            },
+            rules: {
+                comp: [
+                    { required: true, message: '请输入企业名称', trigger: 'blur' },
+                    { min: 1, max: 20, message: '长度在 1 到 20 个字符', trigger: 'blur' }
+                ],
+                vouId: [
+                    { required: true, message: '请输入凭证编号', trigger: 'blur' },
+                    { min: 1, max: 4, message: '长度在 1 到 4 个字符', trigger: 'blur' }
+                ],
+                vouAcc: [
+                    { required: false, message: '请输入记账科目', trigger: 'blur' },
+                    { min: 0, max: 20, message: '长度在 0 到 20 个字符', trigger: 'blur' }
+                ],
+                conAcc: [
+                    { required: false, message: '请输入对方科目', trigger: 'blur' },
+                    { min: 0, max: 20, message: '长度在 0 到 20 个字符', trigger: 'blur' }
+                ],
+                amount: [
+                    { required: false, message: '请输入凭证总金额', trigger: 'blur' },
+                    { min: 0, max: 20, message: '长度在 0 到 20 个字符', trigger: 'blur' }
+                ],
+                vouDate: [
+                    { type: 'string', required: true, message: '请选择凭证日期', trigger: 'change' }
+                ],
+            }
+        },
+        methods:{
+            findById(){
+                axios.get("/spotCheckVoucher/findByIdv?comp="+this.vouchers.comp+"&vouDate="+this.vouchers.vouDate+"&vouId="+this.vouchers.vouId).then((res)=>{
+                    this.vouchers = res.data.data;
+                    this.vouchers2=res.data.data; //识别是否为已经存在的数据，判断为修改还是新增数据
+                });
+            },
+            //表达重置
+            clearAll() {
+                this.$refs.voucheckFormRef.resetFields();
+            },
+            save(){
+                var method = "";
+                if(this.vouchers2.vouId != null && this.vouchers2.comp!=null &&  this.vouchers2.vouDate!=null){
+                    method = "updatev"
+                    //有主键说明是修改不是新增
+                }else{
+                    method = "addv"
+                }
+                axios.post("/spotCheckVoucher/"+method,this.vouchers).then((res)=>{
+                    if(res.data.flag){
+                        this.$message({
+                            message: res.data.message,
+                            type: 'success'
+                        });
+                    }
+                });
+            },
+            //获取页面的指定String(数字)
+            getQueryString(name){
+                let reg = `(^|&)${name}=([^&]*)(&|$)`;
+                let r = window.location.search.substr(1).match(reg);
+                if (r != null)
+                    return unescape(r[2]);
+                return null;
+            },
+            //获取页面的指定String(中文)
+            getQueryStringC(name){
+                let reg = `(^|&)${name}=([^&]*)(&|$)`;
+                let r = window.location.search.substr(1).match(reg);
+                if (r != null)
+                    return decodeURIComponent(r[2]);
+                return null;
+            },
+        },
+        created:function(){
+            //获取父页面传递参数，凭证信息ID
+            this.vouchers.vouId = this.getQueryString("vouId");
+            this.vouchers.vouDate = this.getQueryString("vouDate");
+            this.vouchers.comp = this.getQueryStringC("comp");
+            //根据vouId\comp\vouDate获取凭证信息对象，进行数据回显
+            if((this.vouchers.vouId != null && this.vouchers.vouId != '')&&
+                (this.vouchers.comp != null && this.vouchers.comp != '')&&
+                (this.vouchers.vouDate != null && this.vouchers.vouDate != '')){
+                this.title="修改凭证信息";
+                this.findById();
+            }
+            layui.use(['element','layer','form'], function(){
+                $ = layui.jquery;//jquery
+                lement = layui.element();//面包导航
+                layer = layui.layer;//弹出层
+                form = layui.form();
+                okLoading.close($);
+            })
+        }
+    });
+</script>
+</body>
+</html>

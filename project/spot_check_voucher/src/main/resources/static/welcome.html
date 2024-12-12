@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>欢迎页面</title>
+    <style>
+        body {
+            background-color: #d9d9d9;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #2897a9;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        p {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        a {
+            background-color: #4CAF50;
+            border-radius: 5px;
+            color: white;
+            display: block;
+            font-size: 20px;
+            margin-bottom: 10px;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            width: 200px;
+        }
+        a:hover {
+            background-color: #3e8e41;
+        }
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 13%;
+            filter: brightness(60%);
+        }
+        form {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 400px;
+            text-align: center;
+        }
+        input[type=text] {
+            border-radius: 5px;
+            border-style: solid;
+            border-width: 1px;
+            font-size: 16px;
+            padding-left: 10px;
+            width: 100%;
+        }
+        input[type=submit] {
+            background-color: #4CAF50;
+            border-radius: 5px;
+            border-style:none;
+            color:white;
+            font-size :16px;
+            padding :10px;
+            margin-top :10px;
+            width :100%;
+            cursor:pointer;
+            transition :background-color .3s ease-in-out;
+        }
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        li {
+            display: block;
+            margin-bottom: 25px;
+        }
+
+        a {
+            display: inline-block;
+            padding: 15px;
+            background-color: #2897a9;
+            color: #fff;
+        }
+        input[type=submit]:hover {
+            background-color :#3e8e41;
+        }
+        .container {
+            display:flex;
+            flex-direction :row;
+            flex-wrap :wrap;
+            align-items:center;
+            max-width :1200px;
+            margin-top :30px;
+            margin-left:auto;
+            margin-right:auto;
+            padding :0 20px;
+        }
+        .box {
+            background-color:#fff;
+            box-shadow :0 0 10px rgba(0,0,0,.1);
+            border-radius :5px;
+            flex-basis :calc(33.33% - 40px);
+            margin :20px;
+            padding :20px;
+        }
+        .box img {
+            max-width :100%;
+        }
+        .box h2 {
+            color:#333;
+            font-size :24px;
+            margin-bottom :10px;
+        }
+        .box p {
+            color:#666;
+            font-size :16px;
+            line-height :24px;
+        }
+    </style>
+</head>
+<body>
+<br>
+<header>
+    <img src="images/logo.jpg" alt="公司标志">
+</header>
+
+<h1>欢迎来到VouCheck</h1>
+<br>
+<br>
+<ul>
+    <li><a href="vouchersList.html">原始凭证</a></li>
+    <li><a href="checkVouInfoList.html">凭证抽查</a></li>
+    <li><a href="auditorList.html">审计师信息</a></li>
+    <li><a href="internList.html">实习生信息</a></li>
+</ul>
+</body>
+</html>

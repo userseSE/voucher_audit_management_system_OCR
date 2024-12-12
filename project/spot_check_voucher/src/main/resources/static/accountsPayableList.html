@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>
+        凭证抽查信息列表
+    </title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="css/main.css" media="all">
+    <script type="text/javascript" src="lib/loading/okLoading.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <!--导入ElementUI样式列表，css样式一般都在页面头部-->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+<div class="x-nav">
+            <span class="layui-breadcrumb">
+              <a><cite>首页</cite></a>
+              <a><cite>抽样凭证审核情况</cite></a>
+              <a><cite>凭证抽查信息列表</cite></a>
+            </span>
+    <!--TODO Breadcrumb 面包屑-->
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"  href="javascript:location.replace(location.href);" title="刷新"><i class="layui-icon" style="line-height:30px">ဂ</i></a>
+</div>
+<div class="x-body" id="app" style="width:100%;height:1500px;overflow-y:scroll;overflow-x:scroll;">
+    <!--x-body能包住绝大部分页面，下面vue中的el引用的就是这个页面的id（<div id="app"></div>）-->
+    <div>
+        <span class="demonstration">记账凭证时间范围</span>
+        <el-date-picker
+                @change="dateChange"
+                v-model="selectDate"
+                type="daterange"
+                range-separator="-"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                :picker-options="pickerOptions">
+        </el-date-picker>
+        <!--@change就是dateChange，在Vue里面必须声明（写这个方法）-->
+        <!--align="right"靠右，没有即靠左-->
+        <br>
+        <br>
+        <span class="demonstration">请输入查询关键字：</span>
+        <!--TODO 公司名称下拉列表显示-->
+        <el-input v-model="searchMap.Comp" prop="comp" style="width: 7%" placeholder="公司名称"></el-input>
+        <!--v-model就已经获取了输入的Comp，并给这个searchMap里的Comp赋值了-->
+        <el-input v-model="searchMap.VouId" prop="vouId" style="width: 7%" placeholder="凭证号"></el-input>
+        <el-input v-model="searchMap.AudId" prop="audId" style="width: 7%" placeholder="抽凭索引号"></el-input>
+        <el-input v-model="searchMap.AudPro" prop="audPro" style="width: 7%" placeholder="审计程序"></el-input>
+        <el-input v-model="searchMap.ConAcc" prop="conAcc" style="width: 7%" placeholder="贷方科目"></el-input>
+        <el-input v-model="searchMap.AmountMax" prop="amountMax" style="width: 8%" placeholder="凭证金额上限"></el-input>
+        <el-input v-model="searchMap.AmountMin" prop="amountMin" style="width: 8%" placeholder="凭证金额下限"></el-input>
+        <el-input v-model="searchMap.InternName" prop="internName" style="width: 7%" placeholder="抽凭负责人"></el-input>
+        <el-input v-model="searchMap.InternId" prop="internId" style="width: 9%" placeholder="抽凭负责人工号"></el-input>
+        <el-button type="primary" plain @click="searchMap.PageNumber='1';search()">搜索</el-button>
+        <!--@click事件触发search() method，在Vue里面声明的这个方法-->
+        <!--设置每次点击搜索都把PageNumber置为1，防止翻到第二页搜不出第一页的信息-->
+        <br>
+        <br>
+        </div>
+    <xblock>
+        <el-radio v-model="searchMap.Procedu" label="是" @click="searchMap.PageNumber='1';search()" @click.native.prevent = "handleCancel('是');searchMap.PageNumber='1';search()">只看手续齐全的</el-radio>
+        <el-radio v-model="searchMap.Procedu" label="否" @click="searchMap.PageNumber='1';search()" @click.native.prevent = "handleCancel('否');searchMap.PageNumber='1';search()">只看手续不齐全的</el-radio>
+        <el-radio v-model="searchMap.Verify" label="是" @click="searchMap.PageNumber='1';search()" @click.native.prevent = "handleCancel1('是');searchMap.PageNumber='1';search()">只看核对相符的</el-radio>
+        <el-radio v-model="searchMap.Verify" label="否" @click="searchMap.PageNumber='1';search()" @click.native.prevent = "handleCancel1('否');searchMap.PageNumber='1';search()">只看核对不符的</el-radio>
+        <!--@click是调用Vue的方法，admin_add已经放进Vue方法了-->
+        <!--<button class="layui-btn layui-btn-danger" @click="delAll()"><i class="layui-icon">&#xe640;</i>批量删除</button>
+        <button class="layui-btn" @click="admin_add('添加','checkVouInfoAdd.html','1000','600')"><i class="layui-icon">&#xe608;</i>添加</button>-->
+        <!--TODO 总条数显示-->
+        <!--<span class="x-right" style="line-height:40px">共有数据：<button key="1" class="layui-btn layui-btn-danger"></button></span><span>条</span>-->
+        <!--<button id="spanv" class="layui-badge" value="app.total"></button>-->
+    </xblock>
+    <table class="layui-table">
+        <thead>
+        <tr>
+            <th>
+                <input type="checkbox" id="allChecked" :checked="checkIds.length===voucheckList.length" @click="allChecked">
+            </th>
+            <th>
+                企业名称
+            </th>
+            <th>
+                凭证编号
+            </th>
+            <th>
+                记账日期
+            </th>
+            <th>
+                借方科目
+            </th>
+            <th>
+                贷方科目
+            </th>
+            <th>
+                凭证金额
+            </th>
+            <th>
+                抽凭程序
+            </th>
+            <th>
+                抽凭索引号
+            </th>
+            <th>
+                抽凭负责人
+            </th>
+            <!--<th>
+                负责人工号
+            </th>-->
+            <th>
+                凭证附件
+            </th>
+            <th>
+                银行回单标题
+            </th>
+            <th>
+                付款人姓名
+            </th>
+            <th>
+                收款人姓名
+            </th>
+            <th>
+                银行回单金额
+            </th>
+            <th>
+                银行回单编号
+            </th>
+            <th>
+                银行回单交易日期
+            </th>
+            <th>
+                手续是否齐全
+            </th>
+            <th>
+                内容是否相符
+            </th>
+            <th>
+                附件银行回单
+            </th>
+            <!--<th>
+                识别附件内容
+            </th>-->
+            <!--<th>
+                创建时间
+            </th>-->
+            <!--<th>
+                更新时间
+            </th>-->
+            <th>
+                操作
+            </th>
+        </tr>
+        </thead>
+        <tbody id="x-img">
+        <!--对Vue中内容进行遍历展示-->
+        <!--TODO 复选框无法删除的问题-->
+        <tr v-for="(voucheck,index) in voucheckList">
+            <td>
+                <input type="checkbox" :value="[voucheck.comp,voucheck.audId]" v-model="checkIds">
+            </td>
+            <!--实体类中的属性-->
+            <td>{{voucheck.comp}}</td>
+            <td>{{voucheck.vouId}}</td>
+            <td>{{voucheck.vouDate}}</td>
+            <td>{{voucheck.vouAcc}}</td>
+            <td>{{voucheck.conAcc}}</td>
+            <td>{{voucheck.amount}}</td>
+            <td>{{voucheck.audPro}}</td>
+            <td>{{voucheck.audId}}</td>
+            <td>{{voucheck.internName}}</td>
+            <!--<td>{{voucheck.internId}}</td>-->
+            <td>{{voucheck.attach}}</td>
+            <td>{{voucheck.bankRAudId}}</td>
+            <td>{{voucheck.bankPayerName}}</td>
+            <td>{{voucheck.bankPayeeName}}</td>
+            <td>{{voucheck.bankRAmount}}</td>
+            <td>{{voucheck.receiptNo}}</td>
+            <td>{{voucheck.bankRDate}}</td>
+            <td>{{voucheck.procedu}}</td>
+            <td>{{voucheck.verify}}</td>
+            <td>
+                <!--需要开启nginx-->
+                <!--记得开启nginx-->
+                <!--thumbnail缩略图-->
+                <img :src="urlImg(voucheck.thumbnail)" width="50" height="30" alt="">
+            </td>
+            <td class="td-manage">
+                <a title="识别银行回单" href="javascript:;" @click="identify_photo(voucheck.audId,voucheck.comp)">
+                    <i class="el-icon-refresh-right"></i>
+                </a>
+                <a title="编辑" href="javascript:;" @click="checkVouInfo_edit('编辑','financialExpenseAdd.html',voucheck.comp,voucheck.audId,'1000','600')"
+                   class="ml-5" style="text-decoration:none">
+                    <i class="layui-icon">&#xe642;</i>
+                </a>
+                <a title="删除" href="javascript:;" @click="admin_delOne(voucheck.comp,voucheck.audId)"
+                   style="text-decoration:none">
+                    <i class="layui-icon">&#xe640;</i>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!--分页插件-->
+    <!--查看组件参数说明及用法-->
+    <!--TODO 删除和添加信息后分页插件显示仍为第二页的问题-->
+    <el-pagination
+            background
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :page-size="searchMap.PageSize"
+            :page-sizes="[2,10,20,50,100]"
+            layout="prev, pager, next, sizes"
+            style="text-align: right"
+            :total="total">
+    </el-pagination>
+</div>
+<script>
+    /*$('#spanv').html(app.total);*/
+    /*document.getElementById('spanv').innerHTML=app.total;*/
+</script>
+<script src="lib/layui/layui.js" charset="utf-8"></script>
+<script src="js/x-layui.js" charset="utf-8"></script>
+<!--导入js脚本一般放在页面尾部-->
+<!--Vue js脚本-->
+<script src="js/vue.js" charset="utf-8"></script>
+<!--引入ElementUI组件库-->
+<script src="js/index.js" charset="utf-8"></script>
+<!--引入Axios js脚本-->
+<script src="js/axios.js" charset="utf-8"></script>
+<!--引入时间插件包Moment js-->
+<script src="js/moment.min.js" charset="utf-8"></script>
+<script>
+    var app=new Vue({
+        el: '#app',
+        /*声明当前Vue在页面的作用域，会扫描id=app的*/
+        data:{
+            voucheckList:[],
+            total:10,
+            searchMap:{"VouDateStart":"","VouDateEnd":"","Comp":"","VouId":"","VouAcc":"应付账款",
+                "ConAcc":"","Amount":"","AmountMax":"","AmountMin":"","AudPro":"","AudId":"","InternId":"","InternName":"",
+                "Procedu":"","Verify":"","PageNumber":1,"PageSize":10},
+            selectDate:["",""],
+            checkIds:[],
+            pickerOptions: {
+                shortcuts: [{
+                    text: '最近一周',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近一个月',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近三个月',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }]
+            },
+        },
+        methods:{
+            //分页条件查询抽凭信息列表
+            search(){
+                /*post发送请求，then如果请求成功则返回res，res就是result(app前端，result后端),this就是app*/
+                axios.post("/spotCheckVoucher/search", this.searchMap).then((res)=>{
+                    app.voucheckList=res.data.data;
+                    app.total=res.data.total;
+                    /*凭证信息列表和总条数*/
+                })
+            },
+            //全选、全不选方法
+            allChecked: function () {
+                if (this.checkIds.length === this.voucheckList.length) {
+                    // 全不选
+                    this.checkIds = [];
+
+                } else {
+                    this.checkIds = [];
+                    // 全选
+                    this.voucheckList.forEach( (voucheck) =>{
+                        this.checkIds.push([voucheck.comp,voucheck.audId]); // 与checkbox的value统一
+                    })
+                }
+            },
+            //前端时间区间发生改变，searchMap中时间区间条件也要变化
+            dateChange(){
+                //没有选择时间区间，或者清理了时间条件，当前时间区间为空字符串
+                if(this.selectDate==null||this.selectDate.length==0){
+                    this.searchMap.VouDateStart="";
+                    this.searchMap.VouDateEnd="";
+                }else{
+                    //时间区间不为空，则添加条件
+                    if(this.selectDate[0]!=null||this.selectDate[0].length!=0){
+                        this.searchMap.VouDateStart=this.selectDate[0];
+                    }
+                    if(this.selectDate[1]!=null||this.selectDate[1].length!=0){
+                        this.searchMap.VouDateEnd=this.selectDate[1];//TODO 时间上限取不到
+                    }
+                }
+            },
+            //日期格式化方法
+            //date 要进行格式的日期：format格式化的样式
+            //库已经有这个函数了，不要再用
+            /*dateFormat(date,format){
+                //默认格式化字符串（不传递format就用默认的）
+                if(format==null||format==""){
+                    format="YYYY-MM-DD"
+                }else{
+                    //传递了就用传递的
+                    return moment(date).format(format);
+                }
+            },*/
+            //每页数量发生变化后触发的方法（把searchMap里的每页数量变了就行）
+            handleSizeChange(pageSize){
+                this.searchMap.PageSize=pageSize;
+                this.search();//点了分页直接就跳转，不用点search按钮
+            },
+            //当前页码变化触发方法
+            handleCurrentChange(pageNum){
+                this.searchMap.PageNumber=pageNum;
+                this.search();
+            },
+            handleCancel(value){
+                this.searchMap.Procedu = value == this.searchMap.Procedu ? '' : value;
+            },
+            handleCancel1(value){
+                this.searchMap.Verify = value == this.searchMap.Verify ? '' : value;
+            },
+            /*-------以下都是LayUI的方法-------*/
+            /*添加*/
+            admin_add(title,url,w,h){
+                x_admin_show(title,url,w,h);
+            },
+            /*删除*/
+            admin_delOne(comp,audId){
+                this.$confirm('此操作将永久删除该条信息, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.checkIds=[];
+                    //把选中的主键封装到集合中
+                    this.checkIds.push([comp,audId]);
+                    //把这个集合post到del后端中
+                    axios.post('/spotCheckVoucher/del',this.checkIds).then((res)=>{
+                        if(res.data.flag){
+                            this.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });
+                        }
+                        //删除成功后，将选中的列表置为空
+                        this.checkIds=[];
+                    });
+                    //成功后，把页码置为1重新获取页表数据
+                    this.searchMap.PageNumber="1";
+                    this.search();
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            /*多选删除*/
+            delAll(){
+                this.$confirm('此操作将永久删除选中的信息, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    //把这个集合post到del后端中
+                    axios.post('/spotCheckVoucher/del',this.checkIds).then((res)=>{
+                        if(res.data.flag){
+                            this.$message({
+                                type: 'success',
+                                message: '删除成功!'
+                            });
+                        }
+                        //删除成功后，将选中的列表置为空
+                        this.checkIds=[];
+                    });
+                    //成功后，把页码置为1重新获取页表数据
+                    this.searchMap.PageNumber="1";
+                    this.search();
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            <!--需要开启nginx-->
+            <!--记得开启nginx-->
+            <!--开启nginx哦-->
+            urlImg(url){
+                return "http://localhost/voucheck"+url;
+            },
+            /*图片识别*/
+            identify_photo(audId,comp){
+                this.checkIds=[];
+                this.checkIds.push([audId,comp,"bankReceipt"]);
+                //把这个集合post到del后端中
+                axios.post('/spotCheckVoucher/identify',this.checkIds).then((res)=> {
+                        if (res.data.flag) {
+                            this.$message({
+                                type: 'success',
+                                message: '识别成功!'
+                            });
+                            this.search();
+                            this.checkIds=[];
+                        }
+                    }
+                )
+            },
+            //编辑
+            checkVouInfo_edit (title,url,comp,audId,w,h) {
+                url = url+"?comp="+comp+"&audId="+audId;
+                this.x_admin_show(title,url,w,h);
+            },
+            /*弹出层*/
+            /*
+                参数解释：
+                title	标题
+                url		请求的url
+                id		需要操作的数据id(主键)
+                w		弹出层宽度（缺省调默认值）
+                h		弹出层高度（缺省调默认值）
+            */
+            x_admin_show(title,url,w,h){
+                if (title == null || title == '') {
+                    title=false;
+                };
+                if (url == null || url == '') {
+                    url="404.html";
+                };
+                if (w == null || w == '') {
+                    w=800;
+                };
+                if (h == null || h == '') {
+                    h=($(window).height() - 50);
+                };
+
+                layer.open({
+                    type: 2,
+                    area: [w +'px', h +'px'],
+                    fix: false, //不固定
+                    maxmin: true,
+                    shadeClose: true,
+                    shade:0.4,
+                    title: title,
+                    content: url,
+                    //见layui官网的方法
+                    cancel: function(index, layero){
+                        //使用右上角x关闭弹窗层，回调方法，重新加载页面数据，让修改或者新增的数据立马显示在页面上
+                        app.search();
+                    }
+                });
+            },
+
+            /*关闭弹出框口*/
+            x_admin_close(){
+                var index = parent.layer.getFrameIndex(window.name);
+                parent.layer.close(index);
+            },
+        },
+        created: function(){//Vue生命周期方法，加载页面时会执行该方法(初始的)
+            /*post发送请求，then如果请求成功则返回res，res就是result(app前端，result后端),this就是app*/
+            axios.post("/spotCheckVoucher/search", this.searchMap).then((res)=>{
+                app.total=res.data.total;
+                /*凭证信息总条数*/
+            });
+
+            layui.use(['laydate','element','laypage','layer'], function(){
+                $ = layui.jquery;//jquery
+                layer = layui.layer;//弹出层
+                okLoading.close($);
+                //以上模块根据需要引入
+
+                layer.ready(function(){ //为了layer.ext.js加载完毕再执行
+                    layer.photos({
+                        photos: '#x-img'
+                    });
+                });
+            });
+            //初始页面获取抽凭列表信息(调用app的search方法（把后端数据响应给voucheckList），然后前面的html代码将其展示在页面上)
+            this.search();
+        }
+    });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,522 @@
+/'可用'/
+@startuml
+title 系统ER图
+!define table(x) class x << (T,#FFAAAA) >>
+!define view(x) class x << (V,#AAAACC) >>
+
+view(User)
+table(Intern)
+table(Auditor)
+table(Manager)
+table(Vouchers)
+table(Auditor_Manage)
+table(Check_Vou_Info)
+
+User -down-> Intern : 基于
+User -down-> Auditor : 基于
+User -down-> Manager : 基于
+
+Auditor_Manage -down-> Auditor : 布置抽凭任务
+Auditor_Manage -down-> Vouchers : 匹配关系
+Auditor_Manage -down-> Intern : 指派实习生
+
+Check_Vou_Info -right-> Intern : 实施抽凭工作
+Check_Vou_Info -down-> Auditor_Manage : 关联抽凭任务
+
+@enduml
+
+
+/'可用'/
+@startuml
+title 用户从前端输入图片地址流程图
+
+|用户|
+start
+:输入图片地址;
+|前端|
+if (发送请求) then (yes)
+:post给controller层;
+|Controller|
+if (传递参数) then (yes)
+:传递图片地址给service层;
+|Service|
+if (更新domain对象属性) then (yes)
+:获取映射;
+|Dao|
+:更新数据库中数据的图片链接属性;
+else (no)
+:处理失败;
+endif
+else (no)
+:处理失败;
+endif
+else (no)
+:处理失败;
+endif
+stop
+@enduml
+
+
+@startuml
+title 用户输入图片地址时序图
+
+actor 用户
+participant 前端
+participant Controller
+participant Service
+participant Dao
+database 数据库
+
+activate 用户
+用户 -> 前端: 输入图片地址
+activate 前端
+前端 -> Controller: 发送POST请求传递图片地址
+activate Controller
+Controller -> Service: 传递图片地址参数
+activate Service
+Service -> Dao: 获取数据映射
+activate Dao
+Dao --> Service: 返回数据映射
+deactivate Dao
+Service -> 数据库: 更新对应对象的属性
+activate 数据库
+数据库 -> Service: 返回更新结果
+deactivate 数据库
+deactivate Service
+Controller -> 前端: 返回更新结果
+activate 前端
+前端 --> 用户: 显示更新结果
+deactivate 前端
+deactivate Controller
+deactivate 用户
+@enduml
+
+/'可用'/
+@startuml
+title 用户上传图片时序图
+
+actor 用户
+participant 前端页面
+participant Controller
+participant Service
+participant Dao
+database 数据库
+
+activate 用户
+用户 -> 前端页面: 上传图片
+activate 前端页面
+前端页面 -> Controller: 传递图片地址和主键
+activate Controller
+Controller -> Service: 调用更新方法
+activate Service
+Service -> Dao: 根据主键查询需要更新的数据
+activate Dao
+Dao -> 数据库: 根据主键查询需要更新的数据
+数据库 -> Dao: 返回查询结果
+Dao -> Service: 返回需要更新的数据
+Service -> Dao: 更新数据（加入图片地址）
+Dao -> 数据库: 执行数据更新操作
+数据库 -> Dao: 返回更新结果
+Dao -> Service: 返回更新结果
+deactivate Dao
+Service -> Controller: 返回更新结果
+deactivate Service
+Controller -> 前端页面: 返回更新结果
+deactivate Controller
+前端页面 -> 用户: 返回更新结果
+deactivate 前端页面
+deactivate 用户
+@enduml
+
+/'可用'/
+@startuml
+title OCR接口调用用例图
+left to right direction
+actor User
+boundary 前端页面
+control SpringBoot
+database Python文件 as python
+cloud 百度智能云平台 as baidu
+
+User --> 前端页面 : 点击识别图片
+User --> 前端页面 : 上传票据图片和类型
+前端页面 --> SpringBoot : 传入图片和类型
+SpringBoot --> python : 传入图片地址
+python --> baidu : 调用API识别票据内容
+baidu --> python : 返回识别结果
+python --> SpringBoot : 返回识别结果字典
+SpringBoot --> 前端页面 : 返回JSON格式的识别结果
+@enduml
+
+/'可用'/
+@startuml
+title 列表信息增删查改用例图
+left to right direction
+actor User
+boundary 前端页面
+control SpringBoot
+database 数据库 as db
+database Nginx程序 as nginx
+
+User --> 前端页面 : 打开页面
+User --> 前端页面 : 添加票据图片
+前端页面 --> nginx : 请求图片
+nginx --> 前端页面 : 返回图片
+前端页面 --> SpringBoot : 存储票据信息
+SpringBoot --> db : 插入数据
+db --> SpringBoot : 返回插入成功
+SpringBoot --> 前端页面 : 提示增加成功
+User --> 前端页面 : 修改数据
+前端页面 --> SpringBoot : 请求修改的数据
+SpringBoot --> db : 查询原数据
+db --> SpringBoot : 返回原数据
+SpringBoot --> 前端页面 : 显示原数据
+前端页面 --> SpringBoot : 更新修改后的数据
+SpringBoot --> db : 更新数据
+db --> SpringBoot : 返回更新成功
+SpringBoot --> 前端页面 : 提示修改成功
+User --> 前端页面 : 删除单条数据
+前端页面 --> SpringBoot : 请求删除数据
+SpringBoot --> 前端页面 : 弹出确认框
+前端页面 --> SpringBoot : 确认删除
+SpringBoot --> db : 删除数据
+db --> SpringBoot : 返回删除结果
+SpringBoot --> 前端页面 : 提示删除成功
+
+User --> 前端页面 : 批量删除数据
+前端页面 --> SpringBoot : 请求批量删除数据
+SpringBoot --> 前端页面 : 弹出确认框
+前端页面 --> SpringBoot : 确认删除
+SpringBoot --> db : 批量删除数据
+db --> SpringBoot : 返回删除结果
+SpringBoot --> 前端页面 : 提示删除成功
+
+User --> 前端页面 : 查询数据
+前端页面 --> SpringBoot : 请求查询数据
+SpringBoot --> db : 查询数据
+db --> SpringBoot : 返回查询结果
+SpringBoot --> 前端页面 : 显示查询结果
+@enduml
+
+/'可用'/
+@startuml
+|审计师端|
+start
+:从企业ERP系统导入所有凭证数据，生成凭证信息表;
+:查询凭证信息表;
+:输入或选择抽样规则;
+:批量标记按照规则搜索出的需要抽查的样本，并按一定规则生成抽凭索引号;
+:批量或者单个填入对应的审计程序和抽凭负责人，并选择是否需要上传文件;
+|系统|
+if (审计师信息录入是否正确?) then (yes)
+  :生成的信息插入抽凭表中;
+else (no)
+  stop
+endif
+|实习生端|
+:查询抽凭表;
+:按照是否已经完成抽凭以及是否需要上传附件文件搜索;
+:点击修改抽凭信息按钮;
+:上传记账凭证及原始凭证抽查的文件;
+|系统|
+if (实习生上传的文件是否正确?) then (yes)
+  :系统识别上传的文件是否正确，并根据文件内容自动生成表格中的部分凭证信息;
+else (no)
+  stop
+endif
+|实习生端|
+:实习生判断并选择信息是否相符、程序是否完善;
+:点击确定，抽凭信息录入;
+|审计师端|
+:审计师可查询抽凭表，跟踪抽凭的工作;
+|结束|
+stop
+@enduml
+/'可用'/
+@startuml
+title 用户用例
+left to right direction
+actor 用户
+rectangle "系统" {
+' 用户
+用户 --> (登录)
+用户 --> (用户欢迎语句)
+用户 --> (退出账号)
+用户 --> (系统登录保护)
+用户 --> (管理员登录IP限定)
+}
+
+@enduml
+/'可用'/
+@startuml
+title 实习生用例
+left to right direction
+actor 实习生
+rectangle "系统" {
+' 实习生
+实习生 --> (修改个人信息)
+实习生 --> (修改个人状态)
+实习生 --> (查看抽凭表)
+实习生 --> (按完成状态搜索凭证)
+实习生 --> (上传并识别凭证附件)
+实习生 --> (检查凭证并更新审核信息)
+}
+@enduml
+/'可用'/
+@startuml
+title 审计师用例
+left to right direction
+actor 审计师
+rectangle "系统" {
+' 审计师
+审计师 --> (修改个人信息)
+审计师 --> (查询凭证信息)
+审计师 --> (按条件搜索凭证)
+审计师 --> (选择抽查凭证并生成索引号)
+审计师 --> (修改抽查信息)
+审计师 --> (批量添加凭证到抽查列表)
+审计师 --> (查看凭证审核情况)
+}
+@enduml
+/'可用'/
+@startuml
+title 管理员用例
+left to right direction
+actor 管理员
+rectangle "系统" {
+' 管理员
+管理员 --> (增删查改审计师和实习生信息)
+管理员 --> (为实习生匹配带教审计师)
+管理员 --> (管理网站基本设置)
+管理员 --> (关闭网站)
+}
+@enduml
+/'可用'/
+@startuml
+
+title 主要业务序列图
+
+actor 用户
+actor 实习生
+
+boundary 前端
+control Controller
+control Service
+control DAO
+database 数据库
+entity Python文件
+
+== 登录 ==
+
+用户 -> 前端 : 输入用户名、密码和身份
+前端 -> Controller : 提交登录请求
+Controller -> Service : 调用登录服务
+Service -> DAO : 查询用户信息
+DAO -> 数据库 : 查询用户数据
+数据库 --> DAO : 返回用户数据
+DAO --> Service : 返回用户信息
+Service --> Controller : 返回密码验证结果
+Controller --> 前端 : 登录成功或密码错误提示
+前端 --> 用户 : 显示登录结果
+
+== 识别票据内容 ==
+
+实习生 -> 前端 : 上传票据图片
+前端 -> Controller : 提交图片地址参数
+Controller -> Service : 调用识别票据内容服务
+Service -> Python文件 : 调用百度智能云平台的OCR接口
+Python文件 --> Service : 返回识别后的票据内容字典
+Service -> DAO : 保存票据内容到数据库
+DAO -> 数据库 : 插入票据内容
+数据库 --> DAO : 返回插入结果
+DAO --> Service : 返回票据内容的字典
+Service --> Controller : 返回包含所有票据内容的JSON格式数据
+Controller --> 前端 : 页面列表中显示出从票据中提取出的部分属性
+前端 --> 实习生 : 显示票据内容
+
+@enduml
+/'可用'/
+@startuml
+
+title 主要业务活动图
+
+start
+
+partition 审计师 {
+    :从企业ERP系统导入所有凭证数据，生成凭证信息表;
+    :查询凭证信息表;
+    :输入或选择抽样规则;
+    :批量标记按照规则搜索出的需要抽查的样本，并按一定规则生成抽凭索引号;
+    :批量或者单个填入对应的审计程序和抽凭负责人，并选择是否需要上传文件;
+}
+
+partition 系统 {
+    :生成的信息插入抽凭表中;
+}
+
+partition 实习生 {
+    :查询抽凭表;
+    :按照是否已经完成抽凭以及是否需要上传附件文件搜索;
+    :点击修改抽凭信息按钮;
+    :上传记账凭证及原始凭证抽查的文件;
+}
+
+partition 系统 {
+    :系统识别上传的文件是否正确，并根据文件内容自动生成表格中的部分凭证信息;
+}
+
+partition 实习生 {
+    :实习生判断并选择信息是否相符、程序是否完善;
+    :点击确定，抽凭信息录入;
+}
+
+partition 审计师 {
+    :审计师可查询抽凭表，跟踪抽凭的工作;
+}
+
+stop
+
+@enduml
+/'可用'/
+@startuml
+
+title 主要业务活动图
+
+|审计师|
+start
+:从企业ERP系统导入所有凭证数据，生成凭证信息表;
+:查询凭证信息表;
+:输入或选择抽样规则;
+:批量标记按照规则搜索出的需要抽查的样本，并按一定规则生成抽凭索引号;
+:批量或者单个填入对应的审计程序和抽凭负责人，并选择是否需要上传文件;
+
+|系统|
+if (审计师信息录入是否正确?) then (yes)
+  :生成的信息插入抽凭表中;
+else (no)
+  stop
+endif
+
+|实习生|
+:查询抽凭表;
+:按照是否已经完成抽凭以及是否需要上传附件文件搜索;
+:点击修改抽凭信息按钮;
+:上传记账凭证及原始凭证抽查的文件;
+
+|系统|
+if (实习生上传的文件是否正确?) then (yes)
+  :系统识别上传的文件是否正确，并根据文件内容自动生成表格中的部分凭证信息;
+else (no)
+  stop
+endif
+
+|实习生|
+:实习生判断并选择信息是否相符、程序是否完善;
+:点击确定，抽凭信息录入;
+
+|审计师|
+:审计师可查询抽凭表，跟踪抽凭的工作;
+
+stop
+
+@enduml
+
+@startuml
+left to right direction
+title 系统状态图
+
+[*] --> 凭证信息查询状态
+
+凭证信息查询状态 --> 抽样规则选择状态
+抽样规则选择状态 --> 抽查样本标记状态
+抽查样本标记状态 --> 审计程序输入状态
+审计程序输入状态 --> 抽凭信息录入状态
+
+抽凭信息录入状态 --> 附件上传状态: 需要上传附件
+附件上传状态 --> 票据信息识别状态: 上传成功
+票据信息识别状态 --> 抽凭表查询状态: 识别成功
+抽凭信息录入状态 --> 抽凭表查询状态: 不需要上传附件
+
+抽凭表查询状态 --> [*]
+
+@enduml
+
+/'可用'/
+@startuml
+title 构件图
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0
+
+actor Auditor
+actor Intern
+actor Manager
+
+package "审计抽查凭证管理系统" {
+  [用户管理]
+  [权限控制]
+  [任务分配]
+  [抽查执行]
+  [系统设置]
+}
+
+Auditor --> [用户管理]
+Intern --> [用户管理]
+Manager --> [用户管理]
+
+Auditor --> [权限控制]
+Intern --> [权限控制]
+Manager --> [权限控制]
+
+Auditor --> [任务分配]
+Intern --> [抽查执行]
+
+
+
+Manager --> [系统设置]
+
+@enduml
+
+
+@startuml
+
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0
+!includeurl AWSPUML/AWSCommon.puml
+!includeurl AWSPUML/AmazonEC2/AmazonEC2.puml
+!includeurl AWSPUML/AmazonRDS/AmazonRDS.puml
+
+actor Auditor
+actor Intern
+actor Manager
+
+node "审计抽查凭证管理系统" {
+  [Web Server]
+  [Application Server]
+  database "Database Server" {
+    [User View]
+    [Intern Table]
+    [Auditor Table]
+    [Manager Table]
+    [Vouchers Table]
+    [Auditor_Manage Table]
+    [Check_Vou_Info Table]
+  }
+}
+
+Auditor --> [Web Server]
+Intern --> [Web Server]
+Manager --> [Web Server]
+
+[Web Server] --> [Application Server]
+[Application Server] --> "Database Server"
+
+@enduml
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,30 @@
+实习生用表：
+单位名称【主键、外键】	Comp		varchar(20)
+凭证编号【外键】	vou_id		char(4)
+记账日期【外键】	vou_date	date
+记账科目【外键】	vou_acc		varchar(20)
+对方科目【外键】	con_acc		varchar(20)
+凭证金额【外键】	amount		float
+凭证附件		attach		varchar(100)
+所涉发票类型		inv_typ		varchar(20), check( = or =...)（选择框）
+所涉发票编号（如有）	inv_id		char(4)
+附件文件		att_file
+抽凭索引号【主键、外键】aud_id		varchar(10)
+抽凭程序【外键】	aud_pro		varchar(10), check()
+核对内容是否相符	verify		char(2), check( ='是' or ='否')
+手续是否齐全		procedu		char(2), check( ='是' or ='否')
+抽凭负责人【外键】	voucher		varchar(5)
+创建时间		create_time	timestamp
+更新时间		update_time	timestamp
+
+审计师用表：
+单位名称【主键】
+凭证编号【主键】
+记账日期【主键】
+记账科目
+对方科目
+审计程序
+凭证金额
+是否抽查
+抽凭索引号
+抽凭负责人

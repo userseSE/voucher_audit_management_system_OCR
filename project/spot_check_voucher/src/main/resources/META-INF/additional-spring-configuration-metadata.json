@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "security.allow_ip",
+      "type": "java.lang.String",
+      "description": "Description for security.allow_ip."
+  }
+] }

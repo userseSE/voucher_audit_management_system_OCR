@@ -1,0 +1,96 @@
+SpringBoot项目
+一、项目搭建：
+1、创建基础springboot工程（new-module-spiringinitialize）
+2、主要：main、pom.xml
+3、导包（操作数据库、文件上传、分页、测试）进pom.xml
+4、项目相关配置：application.yml（项目启动端口、数据库配置、文件上传配置）
+5、导入静态原型（静态资源）
+6、启动主方法\访问localhost进行测试
+
+
+二、SpringBoot结构说明：
+Controller：业务控制层；
+	控制业务层Service，架起外界与业务层沟通的桥梁，
+	移动端、前端在调用接口访问相关业务时，都会通过Controller，
+	由Controller去调相关的业务层代码并把数据返回给移动端和前端；
+Service：业务层/服务层；
+	所有的内部的业务逻辑都会放在这里处理，
+	比如用户的增删改查，或者发送个验证码或邮件，或者做一个抽奖活动等等，都会在Service中进行，
+	当然，业务离肯定是离不开数据的支持，因此Dao层是必不可少的；
+Dao：数据库持久化层；和数据库打交道
+
+P.S.
+1、Controller层不允许直接操作数据库！
+2、Controller只是一个中间者或者转发者，不应该在Controller里暴露Service的业务逻辑，而应该直接转发Service的业务处理结果
+3、一般地，一个Controller对应一个Service，一个Service对应一个Dao，一个Dao对应一个数据库表
+4、根据项目或业务复杂程度，一个Controller可以调用多个Service，一个Service也可以调用多个Dao，
+	但是Controller层不允许互调，Service层也不允许互调，
+	AController不能直接调用BController，AService也不能直接去调用BService，
+	遵循高内聚低耦合原则
+
+Controller的写法有两种：
+1. @Controller + @RequestMapping + @ResponseBody方式
+2. @RestController + @GetMapping（PostMapping、PutMapping…）方式
+
+
+三、包结构及代码：
+1、建包：
+java标准三个：controller（控制层代码）\service（业务层代码）\dao（持久层代码）
+domain(存放实体类，OIM建立对象关系的映射，和数据库中的表建立关系，操作实体类即操作表)
+（以下包中的类固定使用：）
+common(存放公共组件)
+exception(存放全局异常处理类)
+2、建实体类
+类名首字母大写
+每一个属性进行申明（用alt-end-home批量写）、改成驼峰命名
+建立和表的关系 @Table()
+类实现序列化
+主键（ @Id or 联合主键-重写equals和hashcode）
+get\set
+3、建Controller层（后台返回给前台）
+@RestController
+@RequestMapping("路径")
+Result方法
+4、建service层
+一个接口（获取所有数据）
+一个实现类
+5、建dao层
+一个接口继承了Mapper<...>类
+
+
+四、前后端交互过程
+1、前端浏览器发出请求：localhost:8888/checkVoucher/find
+2、后端controller层接收请求（controller中定义了请求路径 @RequestMapping("/...")）
+3、controller调用service层代码
+4、service调用dao层代码
+总结：前端浏览器-->controller-->service(接口、实现类)-->dao(接口)
+
+五、功能实现
+1、列表查询后端代码
+	1）前端浏览器发送请求：（请求路径）http://localhost/voucheck/search
+				（请求参数）startTime\endTime等等（key:value）
+				（请求数据格式）JSON
+	2）后端controller接收请求： @RequestController @RequestMapping @Autowired @RequestMapping
+	3）后端service层，业务逻辑处理代码：service接口（Page search()），service实现（查询功能实现Example.criteria）
+	4）dao层代码，与数据库进行数据交互：一个接口
+2、列表查询前端代码实现
+	1）ElementUI：https://element.eleme.cn/#/zh-cn
+	2）导入Vue、ElementUI、Axios、Moment所需资源：在communityList.html中：
+
+		<!--导入ElementUI样式列表，css样式一般都在页面头部-->
+		<link rel="stylesheet" href="css/index.css">
+
+		<!--导入js脚本一般放在页面尾部-->
+		<!--Vue js脚本-->
+		<script src="/js/vue.js" charset="utf-8"></script>
+		<!--引入ElementUI组件库-->
+		<script src="/js/index.js" charset="utf-8"></script>
+		<!--引入Axios js脚本-->
+		<script src="/js/axios.js" charset="utf-8"></script>
+		<!--引入时间插件包Moment js-->
+		<script src="/js/moment.min.js" charset="utf-8"></script>
+	3）把LayUI和Vue进行整合（只用layui的弹窗：留下弹出层的代码即可）：定义Vue，完成Vue整合LayUI
+		new一个Vue，Vue的结构：(el:#...,data:{ },methods:{ , , },created:function(){ , , , })
+		把需要用到的layui方法放入methods和created function中
+	4）把ElementUI的组件拿到项目中使用（组件：时间区间、输入框、搜索按钮、分页、复选框）
+			

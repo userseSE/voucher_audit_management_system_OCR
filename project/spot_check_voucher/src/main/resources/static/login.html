@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<!--引入我们的模版引擎-->
+<!--<html lang="en" xmlns:th="http://www.thymeleaf.org">-->
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="css/main.css" media="all">
+    <!--<script type="text/javascript" src="lib/loading/okLoading.js"></script>-->
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <!--导入ElementUI样式列表，css样式一般都在页面头部-->
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" type="text/css"href="css/index.css"/>
+    <link rel="stylesheet" type="text/css"href="css/iconfont.css"/>
+    <style>
+        body{
+            background: #30cfd0;
+            /*background-image: url(../static/img1/虎年.jpg);*/
+            background-repeat: no-repeat;
+            background-size:100%;
+            background-position: 0px -50px;
+        }
+        #login-box{
+            background-color: #00000030;
+            border-radius: 13px;
+            text-align: center;
+            margin: 0px auto;
+            margin-top: 80px;
+            width: 400px;
+            height: 500px;
+        }
+
+        #login-box h1{
+            padding-top: 60px;
+            color: #ffffff;
+        }
+
+        #login-box .input-box{
+            margin-top: 40px;
+        }
+        #login-box .input-box input{
+            border: none;
+            background: none;
+            border-bottom: #FFFFFF 2px solid;
+            padding: 10px 20px;
+            outline: none;
+            color: #FFFFFF;
+        }
+
+        #login-box button{
+            line-height:30px;
+            margin-top: 30px;
+            width: 130px;
+            height: 30px;
+            border-radius:13px ;
+            outline: none;
+            border: none;
+            background-image: linear-gradient(120deg, #a6c0fe 0%, #f68084 100%);
+            color: #FFFFFF;
+        }
+
+        #login-box button:hover{
+            background-image: linear-gradient(to top, #30cfd0 0%, #330867 100%);
+        }
+        #login-box .input-box i{
+            color: #FFFFFF;
+        }
+        #error-box {
+            display: none;
+            background-color: #f2dede;
+            color: #a94442;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ebccd1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign in</title>
+</head>
+<body>
+<div id="login-box">
+    <h1>VouCheck</h1>
+    <!--<div id="error-box"></div>-->
+    <!--<div id="error-box" th:if="${error}">
+        <p th:text="${error}"></p>
+    </div>-->
+    <form method="get" action="/LoginSuccess">
+        <c:if test="${not empty error}">
+            <div id="error-box">
+                <p>${error}</p>
+            </div>
+        </c:if>
+        <br>
+        <label></label>
+        审计师端<input class="radio2" type="radio" name="activeName2" value="auditor" required/>
+        实习生端<input class="radio2" type="radio" name="activeName2" value="intern" required/>
+        管理员端<input class="radio2" type="radio" name="activeName2" value="manager" required/>
+
+        <div class="input-box">
+            <i class="iconfont">&#xe609;</i>
+            <span th:text="${data}" style="text-color:#ff0000;font-size: 10px"></span>
+            <input type="text" name="username" placeholder="请输入ID" required/><br><br>
+        </div>
+        <div class="input-box">
+            <i class="iconfont">&#xe605;</i>
+            <input type="password" name="password" placeholder="请输入密码" required/><br><br>
+        </div>
+        <br>
+        <br>
+        <br>
+        <input type="submit" value="        登录        ">
+    </form>
+</div>
+
+</body>
+</html>
+<script src="lib/layui/layui.js" charset="utf-8"></script>
+<script src="js/x-layui.js" charset="utf-8"></script>
+<!--导入js脚本一般放在页面尾部-->
+<!--Vue js脚本-->
+<script src="js/vue.js" charset="utf-8"></script>
+<!--引入ElementUI组件库-->
+<script src="js/index.js" charset="utf-8"></script>
+<!--引入Axios js脚本-->
+<script src="js/axios.js" charset="utf-8"></script>
+<!--引入时间插件包Moment js-->
+<script src="js/moment.min.js" charset="utf-8"></script>
+<script>
+    var app =new Vue({
+        el: '#login-box',
+        data: {
+            activeName2: 'auditor'
+        },
+        methods: {
+            handleClick(tab, event) {
+                console.log(tab, event);
+            },
+            showError(message) {
+                var errorBox = document.getElementById("error-box");
+                errorBox.innerHTML = message;
+                errorBox.style.display = "block";
+            }
+        },
+        created: function(){}
+    })
+</script>
+
+</body>
+</html>
