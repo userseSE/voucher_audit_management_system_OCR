@@ -45,71 +45,44 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String getUserName(String activeName2, String username) {
-        String result = "";
         switch (activeName2) {
             case "auditor":
-                try {
-                    result = auditorDao.selectByPrimaryKey(username).getAuditor();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Auditor user=auditorDao.selectByPrimaryKey(username);
-                result = auditorDao.selectByPrimaryKey(username).getAuditor();
-                break;
+                Auditor auditor = auditorDao.selectByPrimaryKey(username);
+                return auditor == null ? "" : auditor.getAuditor();
             case "intern":
-                result = internDao.selectByPrimaryKey(username).getInternName();
-                break;
-            /*case "manager":
-                result = managerDao.getUsernameById(username);
-                break;*/
+                Intern intern = internDao.selectByPrimaryKey(username);
+                return intern == null ? "" : intern.getInternName();
             default:
-                break;
+                return "";
         }
-        return result;
     }
 
     @Override
     public String getPhone(String activeName2, String username) {
-        String result = "";
         switch (activeName2) {
             case "auditor":
-                try {
-                    result = auditorDao.selectByPrimaryKey(username).getAuditor();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Auditor user=auditorDao.selectByPrimaryKey(username);
-                result = auditorDao.selectByPrimaryKey(username).getaPhone();
-                break;
+                Auditor auditor = auditorDao.selectByPrimaryKey(username);
+                return auditor == null ? "" : auditor.getaPhone();
             case "intern":
-                result = internDao.selectByPrimaryKey(username).getIPhone();
-                break;
+                Intern intern = internDao.selectByPrimaryKey(username);
+                return intern == null ? "" : intern.getIPhone();
             default:
-                break;
+                return "";
         }
-        return result;
     }
 
     @Override
     public String getKey(String activeName2, String username) {
-        String result = "";
         switch (activeName2) {
             case "auditor":
-                try {
-                    result = auditorDao.selectByPrimaryKey(username).getAuditor();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Auditor user=auditorDao.selectByPrimaryKey(username);
-                result = auditorDao.selectByPrimaryKey(username).getaKey();
-                break;
+                Auditor auditor = auditorDao.selectByPrimaryKey(username);
+                return auditor == null ? "" : auditor.getaKey();
             case "intern":
-                result = internDao.selectByPrimaryKey(username).getIKey();
-                break;
+                Intern intern = internDao.selectByPrimaryKey(username);
+                return intern == null ? "" : intern.getIKey();
             default:
-                break;
+                return "";
         }
-        return result;
     }
 
 }

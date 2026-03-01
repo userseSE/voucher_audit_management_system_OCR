@@ -24,8 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import com.alibaba.fastjson.JSONObject;
-
 @RestController
 @RequestMapping("/voucheck")
 public class FileController {
@@ -118,9 +116,10 @@ public class FileController {
 	public Result fileDel(@RequestParam String fileName){
 		String name = fileName.replace("/fileupload/","");
 		//获取当前项目所在绝对路径
-		String absolutePath = System.getProperty("D:/DEVELOPMENT/Gra_proj/project/spot_check_voucher");
+		String absolutePath = System.getProperty("user.dir");
+		String projectName = "/spot_check_voucher";
 		//文件上传后所在绝对路径
-		String savePath = absolutePath+"/src/main/resources/static/fileupload/";
+		String savePath = absolutePath + projectName + "/src/main/resources/static/fileupload/";
 		File file = new File(savePath+name);
 		if (file.exists()){//文件是否存在
 			file.delete();//删除文件

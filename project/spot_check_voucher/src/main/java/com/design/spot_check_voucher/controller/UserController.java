@@ -16,10 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.System.out;
-import static org.apache.ibatis.ognl.DynamicSubscript.all;
-import static sun.misc.Version.println;
-
 /**
  * Created with IntelliJ IDEA
  *
@@ -40,59 +36,30 @@ public class UserController {
     @RequestMapping(value = "/LoginSuccess")
     @PostMapping("indexI")
     public String LoginSuccess(HttpServletRequest request, Model model, User user) {
-        if (user.getActiveName2().equals("intern")) {
-            //ActiveName2是用户的身份
-            if (user.getPassword().equals(userService.searchKey(user.getActiveName2(),user.getUsername()))) {
-                // 将用户信息存储在会话中
-                HttpSession session = request.getSession();
-                session.setAttribute("username", user.getUsername());
-                session.setAttribute("activeName2", "intern");
-                String username = (String) session.getAttribute("username");
-                String activeName2 = (String) session.getAttribute("activeName2");
+        if (user == null || user.getActiveName2() == null || user.getUsername() == null || user.getPassword() == null) {
+            model.addAttribute("error", "用户名、密码或角色不能为空");
+            return "login";
+        }
 
-                model.addAttribute("username", username);
-                model.addAttribute("activeName2", activeName2);
-                return "indexI";
+        String activeName2 = user.getActiveName2();
+        String storedPassword = userService.searchKey(activeName2, user.getUsername());
+        if (!user.getPassword().equals(storedPassword)) {
+            model.addAttribute("error", "密码错误，请重新输入！");
+            return "login";
+        }
 
-            } else {
-                model.addAttribute("error", "密码错误，请重新输入！");
-                return "login";
-            }
-        } else if (user.getActiveName2().equals("auditor")) {
-            if (user.getPassword().equals(userService.searchKey(user.getActiveName2(),user.getUsername()))) {
-                // 将用户信息存储在会话中
-                HttpSession session = request.getSession();
-                session.setAttribute("username", user.getUsername());
-                session.setAttribute("activeName2", "auditor");
-                String username = (String) session.getAttribute("username");
-                String activeName2 = (String) session.getAttribute("activeName2");
+        HttpSession session = request.getSession();
+        session.setAttribute("username", user.getUsername());
+        session.setAttribute("activeName2", activeName2);
+        model.addAttribute("username", user.getUsername());
+        model.addAttribute("activeName2", activeName2);
 
-                model.addAttribute("username", username);
-                model.addAttribute("activeName2", activeName2);
-                return "indexA";
-
-            } else {
-                model.addAttribute("error", "密码错误，请重新输入！");
-                return "login";
-            }
-        } else if (user.getActiveName2().equals("manager")) {
-            if (user.getPassword().equals(userService.searchKey(user.getActiveName2(),user.getUsername()))) {
-                // 将用户信息存储在会话中
-                HttpSession session = request.getSession();
-                session.setAttribute("username", user.getUsername());
-                session.setAttribute("activeName2", "manager");
-                String username = (String) session.getAttribute("username");
-                String activeName2 = (String) session.getAttribute("activeName2");
-
-                model.addAttribute("username", username);
-                model.addAttribute("activeName2", activeName2);
-
-                return "indexM";
-
-            } else {
-                model.addAttribute("error", "密码错误，请重新输入！");
-                return "login";
-            }
+        if ("intern".equals(activeName2)) {
+            return "indexI";
+        } else if ("auditor".equals(activeName2)) {
+            return "indexA";
+        } else if ("manager".equals(activeName2)) {
+            return "indexM";
         } else {
             return "0";
         }
@@ -116,49 +83,39 @@ public class UserController {
 
     @GetMapping("/getUserInfo")
     @ResponseBody
-    public Map<String, String> getUserInfo(HttpServletRequest request,HttpSession session) {
+    public Map<String, String> getUserInfo(HttpSession session) {
         Map<String, String> userInfo = new HashMap<>();
-        session.setMaxInactiveInterval(30); // 设置session的超时时间为30分钟 * 60
-        Boolean temp=session.isNew();
-        if (session == null) {
-            // session不存在，进行相应的处理，例如返回登录页面
-        } else {
-            // session存在，继续进行后续操作
-            String username = (String) session.getAttribute("username");
-            String activeName2 = (String) session.getAttribute("activeName2");
-            // ...
-            // 添加username和activeName2到userInfo中
-            userInfo.put("username", username);
-            userInfo.put("activeName2", activeName2);
-
-            // 根据 activeName2 查询对应的身份名称
-            String identity = "";
-            switch (activeName2) {
-                case "auditor":
-                    identity = "审计师";
-                    break;
-                case "intern":
-                    identity = "实习生";
-                    break;
-                case "manager":
-                    identity = "管理员";
-                    break;
-                default:
-                    break;
-            }
-
-            // 根据 username 和 activeName2 查询对应的员工姓名
-            String name = userService.getUserName(activeName2, username);
-            String phone= userService.getPhone(activeName2, username);
-            String secretKey=userService.getKey(activeName2, username);
-
-            userInfo.put("username", username);
-            userInfo.put("identity", identity);
-            userInfo.put("name", name);
-            userInfo.put("phone",phone);
-            userInfo.put("secretKey",secretKey);
+        session.setMaxInactiveInterval(30 * 60); // 30 minutes
+        String username = (String) session.getAttribute("username");
+        String activeName2 = (String) session.getAttribute("activeName2");
+        if (username == null || activeName2 == null) {
+            return userInfo;
         }
+
+        String name = userService.getUserName(activeName2, username);
+        String phone= userService.getPhone(activeName2, username);
+        String secretKey=userService.getKey(activeName2, username);
+
+        userInfo.put("username", username);
+        userInfo.put("activeName2", activeName2);
+        userInfo.put("identity", mapRoleToIdentity(activeName2));
+        userInfo.put("name", name);
+        userInfo.put("phone",phone);
+        userInfo.put("secretKey",secretKey);
         return userInfo;
+    }
+
+    private String mapRoleToIdentity(String activeName2) {
+        switch (activeName2) {
+            case "auditor":
+                return "Auditor";
+            case "intern":
+                return "Intern";
+            case "manager":
+                return "Manager";
+            default:
+                return "";
+        }
     }
 
     @RequestMapping("/toShow")
